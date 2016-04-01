@@ -1,0 +1,18 @@
+﻿Build started 3/18/2016 9:46:10 AM.
+     1>Project "Z:\CS475_OperatingSystems\InClass\DataFiles2\DataFiles2\DataFiles2.vcxproj" on node 2 (Rebuild target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"Debug\\" /Fd"Debug\vc140.pdb" /Gd /TP /analyze- /errorReport:prompt Source.cpp
+         Source.cpp
+     1>z:\cs475_operatingsystems\inclass\datafiles2\datafiles2\source.cpp(19): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+     1>z:\cs475_operatingsystems\inclass\datafiles2\datafiles2\source.cpp(16): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+         c:\program files (x86)\windows kits\10\include\10.0.10150.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+     1>z:\cs475_operatingsystems\inclass\datafiles2\datafiles2\source.cpp(17): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+         c:\program files (x86)\windows kits\10\include\10.0.10150.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+       Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"Z:\CS475_OperatingSystems\InClass\DataFiles2\Debug\DataFiles2.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"Z:\CS475_OperatingSystems\InClass\DataFiles2\Debug\DataFiles2.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Z:\CS475_OperatingSystems\InClass\DataFiles2\Debug\DataFiles2.lib" /MACHINE:X86 Debug\Source.obj
+         DataFiles2.vcxproj -> Z:\CS475_OperatingSystems\InClass\DataFiles2\Debug\DataFiles2.exe
+     1>Done Building Project "Z:\CS475_OperatingSystems\InClass\DataFiles2\DataFiles2\DataFiles2.vcxproj" (Rebuild target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:03.46
