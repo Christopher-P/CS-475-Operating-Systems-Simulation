@@ -1,21 +1,16 @@
-﻿Build started 4/1/2016 10:04:48 AM.
-     1>Project "Z:\CS475\DataFiles2\DataFiles2\DataFiles2.vcxproj" on node 2 (Rebuild target(s)).
-     1>ClCompile:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\CL.exe /c /ZI /nologo /W3 /WX- /Od /D _DEBUG /D _CONSOLE /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Zc:inline /Fo"x64\Debug\\" /Fd"x64\Debug\vc140.pdb" /Gd /TP /errorReport:prompt Source.cpp
-         Source.cpp
-     1>z:\cs475\datafiles2\datafiles2\source.cpp(26): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-     1>z:\cs475\datafiles2\datafiles2\source.cpp(33): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         c:\program files (x86)\windows kits\10\include\10.0.10150.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
-     1>z:\cs475\datafiles2\datafiles2\source.cpp(34): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         c:\program files (x86)\windows kits\10\include\10.0.10150.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
-     1>z:\cs475\datafiles2\datafiles2\source.cpp(60): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
-         c:\program files (x86)\windows kits\10\include\10.0.10150.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
-     1>z:\cs475\datafiles2\datafiles2\source.cpp(67): warning C4700: uninitialized local variable 'section' used
-       Link:
-         C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\bin\x86_amd64\link.exe /ERRORREPORT:PROMPT /OUT:"Z:\CS475\DataFiles2\x64\Debug\DataFiles2.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /Debug /PDB:"Z:\CS475\DataFiles2\x64\Debug\DataFiles2.pdb" /SUBSYSTEM:CONSOLE /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"Z:\CS475\DataFiles2\x64\Debug\DataFiles2.lib" /MACHINE:X64 x64\Debug\Source.obj
-         DataFiles2.vcxproj -> Z:\CS475\DataFiles2\x64\Debug\DataFiles2.exe
-     1>Done Building Project "Z:\CS475\DataFiles2\DataFiles2\DataFiles2.vcxproj" (Rebuild target(s)).
-
-Build succeeded.
-
-Time Elapsed 00:00:02.03
+﻿  Source.cpp
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(153): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(160): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(161): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(192): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+  c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(188): warning C4101: 'cNum': unreferenced local variable
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(238): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(247): error C2676: binary '[': 'std::list<std::list<PCB,std::allocator<_Ty>>,std::allocator<std::list<_Ty,std::allocator<_Ty>>>>' does not define this operator or a conversion to a type acceptable to the predefined operator
+          with
+          [
+              _Ty=PCB
+          ]
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(247): error C2228: left of '.push_back' must have class/struct/union
