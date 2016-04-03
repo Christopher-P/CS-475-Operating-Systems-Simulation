@@ -12,7 +12,7 @@
 
 using namespace std;
 
-const int NUM_FILES = 100;
+const int NUM_FILES = 2;
 const int MAX_PRIO = 10;
 const int MIN_CONTEXT = 0;
 const int MAX_CONTEXT = 10;
@@ -22,18 +22,19 @@ int dataSet = 0;
 class PCB;
 
 void runSimulate(list<PCB>);
-void runRR(list<PCB>, long long, int);
-void runFCFS(list<PCB>, int);
-void tabulate(vector<PCB>, double);
+vector<double> runRR(list<PCB>, long long, int);
+vector<double> runFCFS(list<PCB>, int);
+vector<double> tabulate(vector<PCB>, double);
 
 void createFiles();
 list<PCB> readFile(int);
 void writeUp(vector<PCB>, int, int);
+void writeOut(vector<vector<double>>);
 
 int main()
 {
 	list<PCB> myTable;
-	//createFiles();
+	createFiles();
 	for (int i = 0; i < NUM_FILES; i++) {
 		dataSet = i;
 		myTable = readFile(i);
@@ -173,11 +174,11 @@ public:
 void createFiles() {
 	FILE * pFile;
 	srand(time(NULL));
-	char filename[NUM_FILES];								//charArray for name
+	char filename[100];								//charArray for name
 	int arrival_time = 0;									//Used to be incrementally random
 	int j = 0;												//Number to hold bursts  in each process
 
-	for (int l = 1; l < 101; l++)							//Create a hundred files
+	for (int l = 1; l < NUM_FILES + 1; l++)							//Create a hundred files
 	{
 		sprintf(filename, "Data_%i.csv", l);				//Put created filename into the charArray 
 		pFile = fopen(filename, "w");						//Create File with name and open it
@@ -206,7 +207,7 @@ list<PCB> readFile(int fileNumber) {
 	int PID;
 	int arrivalTime;
 	ifstream currentFile;
-	char filename[NUM_FILES];
+	char filename[100];
 	char cNum[10];
 	int count = 0;
 	string line;
@@ -244,28 +245,46 @@ list<PCB> readFile(int fileNumber) {
 
 void runSimulate(list<PCB> myTable) {
 
+	//Results has form: Average wait time, Average turnaround time, Average response time, Average ContextSwitch time, Processor utilization %, throughput time, total time needed, CPUS, time quantum
+	vector<vector<double>> tally;
+	vector<double> results;
+
 	int CPUS = 0;
 
 	for (int i = 0; i < 5; i++) {
 		CPUS = pow(2, i);		//run with 1, 2, 4, 8, 16 Processors
 
-		runFCFS(myTable, CPUS);
+		results = runFCFS(myTable, CPUS);
+		results.push_back(CPUS);
+		results.push_back(10000);
+		tally.push_back(results);
 		cout << "Finished FCFS" << endl;
-		runRR(myTable, 10, CPUS);
+		results = runRR(myTable, 10, CPUS);
+		results.push_back(CPUS);
+		results.push_back(10);
+		tally.push_back(results);
 		cout << "Finished RR, 10" << endl;
-		runRR(myTable, 20, CPUS);
+		results = runRR(myTable, 20, CPUS);
+		results.push_back(CPUS);
+		results.push_back(20);
+		tally.push_back(results);
 		cout << "Finished RR, 20" << endl;
-		runRR(myTable, 30, CPUS);
+		results = runRR(myTable, 30, CPUS);
+		results.push_back(CPUS);
+		results.push_back(30);
+		tally.push_back(results);
 		cout << "Finished RR, 30" << endl;
 	}
+
+	writeOut(tally);
 }
 
 int contextSwitch() {
 	return rand() % (MAX_CONTEXT - MIN_CONTEXT + 1) + MIN_CONTEXT;	//+1 because it is non inclusive
 }
 
-void runFCFS(list<PCB> myTable, int CPUS) {
-	runRR(myTable, LLONG_MAX, CPUS);
+vector<double> runFCFS(list<PCB> myTable, int CPUS) {
+	return runRR(myTable, LLONG_MAX, CPUS);
 }
 
 bool cmd(PCB& s1, PCB& s2)
@@ -273,160 +292,170 @@ bool cmd(PCB& s1, PCB& s2)
 	return s1.getPID() < s2.getPID();
 }
 
-void runRR(list<PCB> myTable, long long timeQuantum, int CPUS) {
+vector<double> runRR(list<PCB> myTable, long long timeQuantum, int CPUS) {
+		
+	vector<double> results;
+		
+	vector<PCB> pq;				//simulate priority queue
+	vector<PCB> io;				//Place to hold processes that are working in IO
+	vector<PCB> finished;		//Holds finished processes
 
-		vector<PCB> pq;				//simulate priority queue
-		vector<PCB> io;				//Place to hold processes that are working in IO
-		vector<PCB> finished;		//Holds finished processes
+	vector<PCB>::iterator it;	//Used to manipulate vector positions
 
-		vector<PCB>::iterator it;	//Used to manipulate vector positions
+	vector<PCB> Current;		//Holds the current processes in their processors
 
-		vector<PCB> Current;		//Holds the current processes in their processors
+	int totalProcesses = myTable.size();	//Used to test if all the processes are done running
 
-		int totalProcesses = myTable.size();	//Used to test if all the processes are done running
+	int globalTime = 0;						//simulated time
 
-		int globalTime = 0;						//simulated time
+	int advanceTime = 0;					//time used to advance each process
 
-		int advanceTime = 0;					//time used to advance each process
+	int temp = 0;							//temp variable used randomly to hold things
 
-		int temp = 0;							//temp variable used randomly to hold things
+	int wastedTime = 0;						//Time Processor spent context switching
 
-		int wastedTime = 0;						//Time Processor spent context switching
-
-		double CScounter = 0;					//Number of context switches
-		double CStotal = 0;						//Total time spent context switching
+	double CScounter = 0;					//Number of context switches
+	double CStotal = 0;						//Total time spent context switching
 
 		
-		vector<int> nextSwitch;
+	vector<int> nextSwitch;
 
-		timeQuantum--; //Because we start at 0
+	timeQuantum--; //Because we start at 0
 
-		//Fill the next switch vector to size of CPUSs
-		for (int i = 0; i < CPUS; i++) {
-			nextSwitch.push_back(0);
-			Current.push_back(PCB());
+	//Fill the next switch vector to size of CPUSs
+	for (int i = 0; i < CPUS; i++) {
+		nextSwitch.push_back(0);
+		Current.push_back(PCB());
+	}
+
+	//EVENT BASED
+	while (true) {
+
+		/*************SECTION 1 -- ADD ANY COMPLETED IO PROCESSES  OR NEW PROCESSES   TO THE WAITING QUEUE*********/
+		//add any completed IO process to mytable so it can be sorted into the pq (code reuse!)
+		for (int i = 0; i < io.size(); i++) {
+			if (io[i].getCurrentState() == stopped) {
+				finished.push_back(io[i]);
+				it = io.begin() + i;
+				io.erase(it);
+			}
+			if (globalTime >= io[i].getNextTime()) {
+				myTable.push_front(io[i]);
+				it = io.begin() + i;
+				io.erase(it);
+			}
 		}
-
-		//EVENT BASED
-		while (true) {
-
-			/*************SECTION 1 -- ADD ANY COMPLETED IO PROCESSES  OR NEW PROCESSES   TO THE WAITING QUEUE*********/
-			//add any completed IO process to mytable so it can be sorted into the pq (code reuse!)
-			for (int i = 0; i < io.size(); i++) {
-				if (io[i].getCurrentState() == stopped) {
-					finished.push_back(io[i]);
-					it = io.begin() + i;
-					io.erase(it);
-				}
-				if (globalTime >= io[i].getNextTime()) {
-					myTable.push_front(io[i]);
-					it = io.begin() + i;
-					io.erase(it);
-				}
-			}
-			//Add any processes that have arrived!   
-			while (myTable.size() > 0) {
-				if (globalTime >= myTable.front().getArrivalTime()) {
-					if (pq.size() == 0) {
-						pq.push_back(myTable.front());
-					}
-					else {
-						temp = 0;
-						while (myTable.front().getPriority() + 1 > pq[temp].getPriority()) {		//We use +1 here so it gets puts at the bac of the number segments
-							if (temp >= pq.size() - 1) {
-								break;
-							}
-							temp++;
-						}
-						vector<PCB>::iterator it = pq.begin() + temp;
-						pq.insert(it, myTable.front());
-					}
-					myTable.pop_front();
+		//Add any processes that have arrived!   
+		while (myTable.size() > 0) {
+			if (globalTime >= myTable.front().getArrivalTime()) {
+				if (pq.size() == 0) {
+					pq.push_back(myTable.front());
 				}
 				else {
-					break;
-				}
-			}
-			/********************SECTION 2 -- COMPLETE CONTEXT SWITCH && advance next process ************************************************************/
-			for (int i = 0; i < CPUS; i++) {
-				if (globalTime >= nextSwitch[i]) {
-					if (pq.size() > 0) {
-						//Load next process into processor
-						Current[i] = pq.front();
-
-						//Set first time
-						Current[i].setFirstTime(globalTime);
-
-						//Remove next process from front of queue
-						it = pq.begin();
-						pq.erase(it);
-						//Check if burst is smaller than timeQuantum
-						if (Current[i].getBurst() > timeQuantum) {
-							advanceTime = timeQuantum;
+					temp = 0;
+					while (myTable.front().getPriority() + 1 > pq[temp].getPriority()) {		//We use +1 here so it gets puts at the bac of the number segments
+						if (temp >= pq.size() - 1) {
+							break;
 						}
-						else {
-							advanceTime = Current[i].getBurst();
-						}
-						//Do work on the process
-						Current[i].advanceCPU(advanceTime, globalTime);
-
-						//Check to see if the process is done or if it needs to do IO next
-						if (Current[i].getCurrentState() == stopped) {
-							finished.push_back(Current[i]);
-						}
-						else if (Current[i].getCurrentState() == ready) {
-							myTable.push_front(Current[i]);
-						}
-						else {
-							io.push_back(Current[i]);
-						}
-						//get new context switch time
-						temp = contextSwitch();
-
-						//Increase wasted time
-						wastedTime += temp;
-
-						//Since context switch time is bundled into this we add it to the time needed for the proccess
-						nextSwitch[i] = globalTime + temp + advanceTime;
-
-						CScounter++;
-						CStotal += temp;
+						temp++;
 					}
+					vector<PCB>::iterator it = pq.begin() + temp;
+					pq.insert(it, myTable.front());
 				}
-				else {
-					//either context switching or working on process
-				}
+				myTable.pop_front();
 			}
-			/**********************SECTION 3 ADVANCE WAIT TIME FOR EACH PROCESS THAT IS WAITING**************************************************************/
-
-			for (int i = 0; i < pq.size(); i++) {
-				pq[i].advanceWait(1);
-			}
-
-			/**************SECTION 4  INCREMENT  GLOBAL COUNTER AND CHECK IF IT IS DONE**************88*/
-			if (finished.size() == totalProcesses) {
+			else {
 				break;
 			}
-			globalTime++;
 		}
-		sort(finished.begin(), finished.end(), cmd);
-		if (timeQuantum > 10000) {
-			writeUp(finished, CPUS, -1);
+		/********************SECTION 2 -- COMPLETE CONTEXT SWITCH && advance next process ************************************************************/
+		for (int i = 0; i < CPUS; i++) {
+			if (globalTime >= nextSwitch[i]) {
+				if (pq.size() > 0) {
+					//Load next process into processor
+					Current[i] = pq.front();
+
+					//Set first time
+					Current[i].setFirstTime(globalTime);
+
+					//Remove next process from front of queue
+					it = pq.begin();
+					pq.erase(it);
+					//Check if burst is smaller than timeQuantum
+					if (Current[i].getBurst() > timeQuantum) {
+						advanceTime = timeQuantum;
+					}
+					else {
+						advanceTime = Current[i].getBurst();
+					}
+					//Do work on the process
+					Current[i].advanceCPU(advanceTime, globalTime);
+
+					//Check to see if the process is done or if it needs to do IO next
+					if (Current[i].getCurrentState() == stopped) {
+						finished.push_back(Current[i]);
+					}
+					else if (Current[i].getCurrentState() == ready) {
+						myTable.push_front(Current[i]);
+					}
+					else {
+						io.push_back(Current[i]);
+					}
+					//get new context switch time
+					temp = contextSwitch();
+
+					//Increase wasted time
+					wastedTime += temp;
+
+					//Since context switch time is bundled into this we add it to the time needed for the proccess
+					nextSwitch[i] = globalTime + temp + advanceTime;
+
+					CScounter++;
+					CStotal += temp;
+				}
+			}
+			else {
+				//either context switching or working on process
+			}
 		}
-		else {
-			timeQuantum++; //since it was decremented before
-			writeUp(finished, CPUS, timeQuantum);
+		/**********************SECTION 3 ADVANCE WAIT TIME FOR EACH PROCESS THAT IS WAITING**************************************************************/
+
+		for (int i = 0; i < pq.size(); i++) {
+			pq[i].advanceWait(1);
 		}
-		CStotal = (CStotal / CScounter);	//put average in CStotal
-		tabulate(finished, CStotal);
+
+		/**************SECTION 4  INCREMENT  GLOBAL COUNTER AND CHECK IF IT IS DONE**************88*/
+		if (finished.size() == totalProcesses) {
+			break;
+		}
+		globalTime++;
+	}
+	sort(finished.begin(), finished.end(), cmd);
+	if (timeQuantum > 10000) {
+		writeUp(finished, CPUS, -1);
+	}
+	else {
+		timeQuantum++; //since it was decremented before
+		writeUp(finished, CPUS, timeQuantum);
+	}
+	CStotal = (CStotal / CScounter);	//put average in CStotal
+	system("CLS");
+	cout << "Dataset: " << dataSet << endl;
+	cout << CPUS << " processors" << endl;
+	results = tabulate(finished, CStotal);
+	results.push_back(((double)globalTime - (double)wastedTime) / (double)globalTime * 100);		//Processor utilization %
+	results.push_back((double)finished.size() / (double)globalTime);								//Throughput time
+	results.push_back(globalTime);																	//total time needed
+
+	return results;
 }
 void writeUp(vector<PCB> list, int CPUs, int timeQuantum) {
 	FILE * pFile;
-	char filename[NUM_FILES];								//charArray for name
+	char filename[100];								//charArray for name
 
 	
-		sprintf(filename, "Data_%i_%iCPU_%iquantum.csv", dataSet + 1, CPUs, timeQuantum);				//Put created filename into the charArray 
-		pFile = fopen(filename, "w");						//Create File with name and open it
+		sprintf(filename, "Outdata/Data_%i_%iCPU_%iquantum.csv", dataSet + 1, CPUs, timeQuantum);
+		pFile = fopen(filename, "wb");						//Create File with name and open it
 
 		fprintf(pFile, "PID, Wait Time, Turnaround, Response");
 		fprintf(pFile, "\n");		
@@ -442,9 +471,9 @@ void writeUp(vector<PCB> list, int CPUs, int timeQuantum) {
 		printf("File generated: \"%s\"\n", filename);		//Print out the filename to console saying it is created
 	
 }
-void tabulate(vector<PCB> processes, double avgCS) {
-	double throughputTime = 0;
-	double averageThroughputTime = 0;
+vector<double> tabulate(vector<PCB> processes, double avgCS) {
+	vector<double> results;
+
 	double T = 0;
 	double avgT = 0;
 	double W = 0;
@@ -458,9 +487,37 @@ void tabulate(vector<PCB> processes, double avgCS) {
 	}
 	avgW = W / processes.size();
 	cout << "Average Wait Time: " << avgW << endl;
+	results.push_back(avgW);
 	avgT = T / processes.size();
 	cout << "Average Turnaround time: " << avgT << endl;
+	results.push_back(avgT);
 	avgR = R / processes.size();
 	cout << "Average Response time: " << avgR << endl;
+	results.push_back(avgR);
 	cout << "Average Context Switch time: " << avgCS<< endl;
+	results.push_back(avgCS);
+
+	return results;
+}
+
+void writeOut(vector<vector<double>> tally) {
+	//Results has form: Average wait time, Average turnaround time, Average response time, Average ContextSwitch time, Processor utilization %, throughput time, total time needed, CPUS, time quantum
+
+	FILE * pFile;
+	char filename[100];								//charArray for name
+
+	sprintf(filename, "Data_%i_tallied.csv", dataSet + 1);				//Put created filename into the charArray 
+	pFile = fopen(filename, "w");						//Create File with name and open it
+
+	fprintf(pFile, "Average wait time, Average turnaround time, Average response time, Average ContextSwitch time, Processor utilization %, throughput time, total time needed, CPUS, time quantum");
+	fprintf(pFile, "\n");
+	for (int i = 0; i < tally.size(); i++) {
+		for (int a = 0; a < tally[i].size() - 1; a++) {
+			fprintf(pFile, "%f, ", tally[i][a]);
+		}
+		fprintf(pFile, "%f, ", tally[i][tally[i].size() - 1]);
+		fprintf(pFile, "\n");							//Create newline at end of process
+	}
+	fclose(pFile);										//Close the file when done
+	printf("File generated: \"%s\"\n", filename);		//Print out the filename to console saying it is created
 }
