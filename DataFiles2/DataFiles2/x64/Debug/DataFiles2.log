@@ -1,16 +1,11 @@
 ﻿  Source.cpp
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(153): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(160): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(167): warning C4244: 'argument': conversion from 'time_t' to 'unsigned int', possible loss of data
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(174): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(161): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(175): warning C4996: 'fopen': This function or variable may be unsafe. Consider using fopen_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(205): note: see declaration of 'fopen'
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(192): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(206): warning C4996: 'sprintf': This function or variable may be unsafe. Consider using sprintf_s instead. To disable deprecation, use _CRT_SECURE_NO_WARNINGS. See online help for details.
   c:\program files (x86)\windows kits\10\include\10.0.10240.0\ucrt\stdio.h(1769): note: see declaration of 'sprintf'
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(188): warning C4101: 'cNum': unreferenced local variable
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(238): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(247): error C2676: binary '[': 'std::list<std::list<PCB,std::allocator<_Ty>>,std::allocator<std::list<_Ty,std::allocator<_Ty>>>>' does not define this operator or a conversion to a type acceptable to the predefined operator
-          with
-          [
-              _Ty=PCB
-          ]
-c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(247): error C2228: left of '.push_back' must have class/struct/union
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(202): warning C4101: 'cNum': unreferenced local variable
+c:\users\chris\documents\github\cs-475-operating-systems-simulation\datafiles2\datafiles2\source.cpp(264): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+  DataFiles2.vcxproj -> C:\Users\Chris\Documents\GitHub\CS-475-Operating-Systems-Simulation\DataFiles2\x64\Debug\DataFiles2.exe

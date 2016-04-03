@@ -19,13 +19,14 @@ void runSimulate(list<PCB>);
 const int NUM_FILES = 100;
 const int MAX_PRIO = 10;
 struct pCompare;
-void runRR(list<PCB>, int);
+void runRR(list<PCB>, long long);
 void runFCFS(list<PCB>);
+void tabulate();
 
 int main()
 {
 	list<PCB> myTable;
-	createFiles();
+	//createFiles();
 	for (int i = 0; i < NUM_FILES; i++) {
 		myTable = readFile(i);
 		runSimulate(myTable);
@@ -46,6 +47,8 @@ private:
 	int totalTime;
 	int arrival_time;
 	int finishTime;
+	
+	int temp;
 
 	int priority;
 	int PID;
@@ -75,38 +78,45 @@ public:
 	void tick()
 	{
 		if (current_state == stopped) {
-			//Do nothing cause it is don
+			totalTime--; //Do this to stop totalTime from incrementing when it is done
 		}
-		else if (current_state == waiting){
+		else if (current_state == ready){
 			waitTime++;
 		}
 		else if (current_state == working_io) {
-			burst.front()--;
-			if (burst.front() < 0) {
-				if (burst.size() > 0) {
+			temp = burst.front();
+			temp--;
+			burst.pop_front();
+			burst.push_front(temp);
+			if (burst.front() == 0) {
+				if (burst.size() > 1) {
 					burst.pop_front();
-					current_state = ready;
+					this->setCurrentState(ready);
 					//priority = rand() % MAX_PRIO;				//Uncomment to allow for changing PRIO between cpu calls
 				}
 				else {
-					current_state = stopped;
+					this->setCurrentState(stopped);
 				}
 			}
 			workTime++;
 		}
 		else if (current_state == working_cpu) {
-			burst.front()--;
-			if (burst.front() < 0) {
-				if (burst.size() > 0) {
-					current_state = working_io;
+			temp = burst.front();
+			temp--;
+			burst.pop_front();
+			burst.push_front(temp);
+			if (burst.front() == 0) {
+				if (burst.size() > 1) {
+					this->setCurrentState(working_io);
 					burst.pop_front();
 				}
 				else {
-					current_state = stopped;
+					this->setCurrentState(stopped);
 				}
 			}
 			workTime++;
 		}
+		
 		totalTime++;
 	}
 	
@@ -124,6 +134,7 @@ public:
 	}
 	void setCurrentState(state newState)
 	{
+		workTime = 0;
 		this->current_state = newState;
 	}
 	int getPriority()
@@ -145,6 +156,9 @@ public:
 	}
 	int getWaitTime() {
 		return waitTime;
+	}
+	void setWorkTime(int t) {
+		workTime = t;
 	}
 };
 
@@ -196,6 +210,7 @@ list<PCB> readFile(int fileNumber) {
 	{
 		while (getline(currentFile, line))
 		{
+			burst.clear();
 			stringstream  lineStream(line);
 			string        cell;
 			getline(lineStream, cell, ',');
@@ -221,18 +236,29 @@ list<PCB> readFile(int fileNumber) {
 
 void runSimulate(list<PCB> myTable) {
 	runFCFS(myTable);
+	cout << "Finished FCFS" << endl;
 	runRR(myTable, 10);
+	cout << "Finished RR, 100" << endl;
 	runRR(myTable, 20);
+	cout << "Finished RR, 20" << endl;
 	runRR(myTable, 30);
+	cout << "Finished RR, 30" << endl;
 }
 
 void runFCFS(list<PCB> myTable) {
-	runRR(myTable, INT_MAX);
+	runRR(myTable, LLONG_MAX);
 }
 
-void runRR(list<PCB> myTable, int timeQuantum) {
+void runRR(list<PCB> myTable, long long timeQuantum) {
 	
-	list<PCB> pq;
+	vector<PCB> pq;
+	vector<PCB> io;
+	vector<PCB> finished;
+
+	vector<PCB>::iterator it;
+
+	PCB Current;
+
 	state processor = ready;
 
 	int totalProcesses = myTable.size();
@@ -240,35 +266,107 @@ void runRR(list<PCB> myTable, int timeQuantum) {
 
 	int globalTime = 0;
 
-	while (totalProcesses <= finishedProcesses) {
+	int temp = 0;
 
-		//Add any processes that have arrived!   ">" incase someting goes wrong
-		if (myTable.size() > 0) {
-			if (myTable.front().getArrivalTime() >= globalTime) {
-				insert(myTable.front, pq);
-				myTable.pop_front();
+	timeQuantum--; //Because we start at 0
+
+	//Do while processes still need to run
+	while (finishedProcesses < totalProcesses) {
+
+		//	Add any processes that have finished IO (add it to the front of myTable because we can resuse the sorting code
+		//	below and its arrivale time will definatly be lower than globaltime
+		for (int i = 0; i < io.size(); i++) {
+			if (io[i].getCurrentState() == ready) {
+				myTable.push_front(io[i]);
+				it = io.begin() + i;
+				io.erase(it);
+			}
+			else if (io[i].getCurrentState() == stopped){
+				finished.push_back(io[i]);
+				it = io.begin() + i;
+				io.erase(it);
+				finishedProcesses++;
+			}
+			else {
+				//Do nothing
 			}
 		}
+
+		//Add any processes that have arrived!   
+		while (myTable.size() > 0) {
+			if (globalTime >= myTable.front().getArrivalTime()) {
+				if (pq.size() == 0) {
+					pq.push_back(myTable.front());
+				}
+				else {
+					temp = 0;
+					while (myTable.front().getPriority() + 1 > pq[temp].getPriority()) {		//We use +1 here so it gets puts at the bac of the number segments
+						if (temp >= pq.size() - 1) {
+							break;
+						}
+						temp++;
+					}
+					vector<PCB>::iterator it = pq.begin() + temp;
+					pq.insert(it, myTable.front());
+				}
+				myTable.pop_front();
+			}
+			else {
+				break;
+			}
+		}
+
+		//Move things in/out from cpu if needed
 		if (processor == working_cpu) {
-			
+			//Move front to IO if it is now working in IO
+			if (Current.getCurrentState() == working_io) {
+				io.push_back(Current);
+				processor = ready;
+			}
+			//Move front to Finished if it is done
+			else if (Current.getCurrentState() == stopped) {
+				finished.push_back(Current);
+				processor = ready;
+				finishedProcesses++;
+			}
+			//Move front if time is up (use >  in case something wierd happened)
+			else if (Current.getWorkTime() >= timeQuantum) {
+				Current.setWorkTime(0);
+				myTable.push_front(Current);
+				processor = ready;
+			}
+			else {
+				//PCB keeps running in processor
+			}
 		}
 		else {
+			//Move front of queue into current and start running current
+			if (pq.size() > 0) {
+				Current = pq.front();
+				Current.setCurrentState(working_cpu);
+				it = pq.begin();
+				pq.erase(it);
 
+				processor = working_cpu;
+			}
+			else {
+				//Nothing needs to run in the processor?!?!?!
+			}
 		}
+		//Tick current
+		Current.tick();
+		//Tick everything waiting for CPU
+		for (int i = 0; i < pq.size(); i++) {
+			pq[i].tick();
+		}
+		//Tick everything working in IO
+		for (int i = 0; i < io.size(); i++) {
+			io[i].tick();
+		}
+
 		globalTime++;
 	}
-	
-}
-
-//Sorted by priority
-list<PCB> insert(PCB pcb, list<PCB> lpcb) {
-	list<PCB>::iterator it = std::next(lpcb.begin(), 0);
-	int count = 0;
-	while (pcb.getPriority() <= it->getPriority()) {
-		it = next(it, 1);
-		count++;
-	}
-	lpcb.insert(it, pcb);
+	tabulate();
 }
 void tabulate() {
 
